@@ -2,7 +2,7 @@
 
 ## Three.js 강좌 목차
 
-1. **개발환경구성**
+1. **[개발환경구성](https://youtu.be/ZGACJosABBw?si=e-kuVDnjderwFWLd)**
 2. **기본 구성 요소와 코드**
 3. **지오메트리(Geometry)**
    - Part 1: 기본 지오메트리 소개
