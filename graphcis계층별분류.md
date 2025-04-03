@@ -1,12 +1,13 @@
 ## 🎯 그래픽스 기술의 계층화 분류 (Layered Classification)
 
 | **계층** | **정의** | **주요 기술 / 도구** | **응용 및 특징** |
-|----------|-----------|-----------------------|------------------|
-| 🔧 **저수준 계층**<br> (Low-level API) | GPU를 직접 제어하는 **그래픽스 API**로, 렌더링 파이프라인 조작 가능 | 🔹 **OpenGL**<br>🔹 **Direct3D** (DirectX)<br>🔹 **Vulkan**<br>🔹 **Metal** (Apple)<br>🔹 **WebGPU** (웹 전용) | ✅ 고성능 렌더링 엔진 직접 구현 가능<br>✅ 크로스플랫폼/멀티플랫폼 대응<br>⚠️ 복잡한 셰이더/버퍼/파이프라인 관리 필요 |
-| 🧰 **중간 계층**<br> (Toolkit / Support Library) | 그래픽스 API를 보조하며, 입력 처리, 창 생성, GUI, 리소스 로딩 등 기능 제공 | 🔹 **GLFW**, **SDL** – 창, 키보드/마우스 처리<br>🔹 **ImGui** – 실시간 디버그 UI<br>🔹 **Assimp** – 3D 모델 로딩<br>🔹 **stb_image**, **SOIL** – 이미지 로딩<br>🔹 **FreeType** – 폰트 렌더링<br>🔹 **OpenAL**, **FMOD** – 사운드<br>🔹 **OpenCV** – 영상 처리 | ✅ 다양한 그래픽스 응용 개발 시 보조적 사용<br>✅ C/C++과 연동 쉬움<br>✅ 게임엔진 또는 직접 구현 시 필수 |
-| 🧱 **고수준 계층**<br> (Framework / Engine) | 그래픽스뿐 아니라 물리, 사운드, 네트워크, 에디터 등을 포괄하는 **통합 개발 환경** | 🔹 **Unity** (C#)<br>🔹 **Unreal Engine** (C++/Blueprint)<br>🔹 **Godot** (GDScript)<br>🔹 **Three.js**, **Babylon.js** (Web)<br>🔹 **Cocos2d-x**, **LÖVE** (2D 게임 엔진)<br>🔹 **Blender Game Engine** (비활성화됨) | ✅ 게임, 시뮬레이션, 가상현실 등 고속 개발<br>✅ 에디터 및 시각화 도구 제공<br>✅ 스크립트 기반 개발<br>⚠️ 내부 렌더링 파이프라인 제어 한계 |
-| 🌐 **플랫폼/런타임 계층**<br> (Platform / Runtime Environment) | 그래픽스 API나 엔진이 **실행되는 환경** | 🔹 **Windows** – DirectX<br>🔹 **Linux** – OpenGL/Vulkan<br>🔹 **macOS/iOS** – Metal<br>🔹 **Android** – OpenGL ES/Vulkan<br>🔹 **Web Browsers** – WebGL/WebGPU<br>🔹 **XR 기기** – Meta Quest, SteamVR 등 | ✅ 플랫폼에 따라 지원되는 API 달라짐<br>✅ 앱 배포, 성능 최적화 관점에서 중요 |
+|----------|----------|-----------------------|------------------|
+| 🔧 **저수준 계층**<br>(Low-level API) | GPU를 직접 제어하는 렌더링 API | OpenGL, Direct3D, Vulkan, Metal, WebGPU, WebGL | ✅ 고성능 렌더링 엔진 개발 가능, ✅ 크로스플랫폼 지원, ⚠️ 셰이더·파이프라인 등 저수준 구현 필요 |
+| 🧰 **중간 계층**<br>(Toolkit / Library) | API를 보조하는 입출력·UI·로딩 도구 | GLFW, SDL, ImGui, Assimp, stb_image, FreeType, OpenAL, OpenCV | ✅ 창 생성, 입력 처리, UI 구현 등 보조 기능 제공, ✅ 엔진 없이 직접 구현할 때 유용, ✅ 다른 계층과 유연하게 결합 가능 |
+| 🧱 **고수준 계층**<br>(Framework / Engine) | 그래픽·물리·사운드 등 통합 개발 환경 | Unity, Unreal, Godot, Three.js, Babylon.js, Cocos2d-x, LÖVE | ✅ 빠른 프로토타이핑 및 배포, ✅ 시각적 에디터 제공, ⚠️ 렌더링 세부 제어에는 한계 있음 |
+| 🌐 **플랫폼 계층**<br>(Platform / Runtime) | API와 엔진이 동작하는 기반 환경 | Windows, Linux, macOS, Android, Web, XR 기기 | ✅ 플랫폼에 따라 지원 API 상이, ✅ 앱 최적화와 성능에 영향, ✅ 디바이스 호환성 고려 필요 |
 
+이 표는 한눈에 각 계층의 정의와 특징, 그리고 적용 기술들을 확인할 수 있도록 구성되었습니다. 추가적인 내용이나 다른 형식의 변환이 필요하시면 말씀해 주세요!
 ---
 
 ## 🧭 시나리오별 응용 예시
