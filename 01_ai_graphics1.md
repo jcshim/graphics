@@ -119,9 +119,114 @@
 
 ---
 
-## ✍️ 수업에 활용할 수 있는 활동 아이디어
+# **Three.js + AI**의 주요 응용 사례를 기술 중심으로 정리
 
-* **실습1:** GAN 기반 이미지 생성 체험 (RunwayML 또는 huggingface spaces 사용)
+---
+
+## 📌 1. Three.js + AI의 대표 응용 분야
+
+| 응용 분야                 | 설명                                         | 사용 기술                                     |
+| --------------------- | ------------------------------------------ | ----------------------------------------- |
+| **AI 아바타 및 얼굴 트래킹**   | 사용자의 얼굴을 인식하여 3D 아바타가 실시간으로 따라함            | Three.js + MediaPipe + TensorFlow\.js     |
+| **음성 기반 3D 애니메이션 제어** | 사용자의 음성이나 텍스트 명령으로 3D 객체 제어                | Three.js + Web Speech API + GPT           |
+| **3D 모델 생성 및 편집**     | AI가 텍스트에서 3D 오브젝트 생성 → 실시간으로 Three.js에 렌더링 | Three.js + Point-E / DreamFusion (API 기반) |
+| **시각지능 기반 인터랙션**      | 사용자의 웹캠 입력 분석 후 환경 반응 (예: 손 움직임 → 카메라 회전)  | Three.js + PoseNet + handpose             |
+| **AI 기반 사용자 인터페이스**   | ChatGPT와 통합하여 음성/텍스트로 3D 씬 제어              | Three.js + GPT + WebSocket/REST API       |
+
+---
+
+## 🧠 2. 실제 응용 사례
+
+### ✅ 사례 1. **3D 아바타가 사용자의 얼굴을 따라 움직임**
+
+* **사용 기술**:
+
+  * 얼굴 인식: [MediaPipe FaceMesh](https://google.github.io/mediapipe/)
+  * 3D 모델: Three.js로 만든 캐릭터
+* **동작**:
+  사용자의 얼굴 표정을 카메라로 인식하고, 이를 실시간으로 3D 모델의 표정에 반영
+
+```javascript
+// 예시: 얼굴 landmark를 받아 3D 아바타의 얼굴 뼈대 움직임에 적용
+const landmark = getFacialLandmarks(); // AI에서 추출한 얼굴 위치
+avatar.head.rotation.x = landmark.pitch;
+avatar.head.rotation.y = landmark.yaw;
+```
+
+---
+
+### ✅ 사례 2. **텍스트로 3D 오브젝트 생성 ("Prompt2Object")**
+
+* **사용 기술**:
+
+  * OpenAI API (DALL·E → Point-E로 생성된 3D 객체)
+  * Three.js로 로딩하여 씬에 추가
+* **예시 시나리오**:
+  “A red spaceship” → Point-E 모델이 .obj 파일 생성 → Three.js에서 렌더링
+
+---
+
+### ✅ 사례 3. **음성 명령으로 씬 제어**
+
+* **사용 기술**:
+
+  * Web Speech API로 음성 인식
+  * 명령을 GPT 또는 LLM으로 분석
+  * Three.js에서 조작
+
+```javascript
+if (userSaid("rotate cube")) {
+  cube.rotation.y += 0.1;
+}
+```
+
+---
+
+### ✅ 사례 4. **AI 기반 동작 제스처로 카메라 제어**
+
+* **사용 기술**:
+
+  * TensorFlow\.js + PoseNet 또는 BlazePose
+  * 손 위치에 따라 카메라 줌, 팬, 회전 등 조작
+
+```javascript
+if (leftHandRaised()) {
+  camera.zoom += 0.1;
+  camera.updateProjectionMatrix();
+}
+```
+
+---
+
+## 📦 3. 실시간 AI 모델 적용 예시 (웹 브라우저 기반)
+
+| AI 모델                     | 사용 목적         | 결합 기술                     |
+| ------------------------- | ------------- | ------------------------- |
+| **MediaPipe**             | 얼굴, 손, 포즈 트래킹 | 얼굴 인식 → 캐릭터 제어            |
+| **TensorFlow\.js**        | 브라우저에서 딥러닝 추론 | 손짓 인식, 감정 분석              |
+| **GPT (OpenAI)**          | 자연어 명령 해석     | “나무를 더 추가해줘” → Tree 모델 삽입 |
+| **Whisper (음성 인식)**       | 음성 명령 처리      | “조명을 더 밝게” 명령 해석          |
+| **Point-E / DreamFusion** | 텍스트 → 3D 모델   | 생성된 모델을 Three.js에서 렌더링    |
+
+---
+
+## 🎮 4. 교육용 또는 프로젝트 아이디어
+
+| 프로젝트             | 설명                               |
+| ---------------- | -------------------------------- |
+| 🎓 AI 아바타 만들기    | 웹캠으로 얼굴 인식 + Three.js 캐릭터 제어     |
+| 🗣️ 텍스트 기반 씬 조작기 | GPT와 연동해 “방에 탁자 추가해줘” 식 명령 실행    |
+| 🖐️ 손 제스처 인터랙션   | 손 모양으로 물체 회전, 줌, 클릭              |
+| 🎨 텍스트 기반 배경 생성기 | “밤하늘과 별이 있는 배경 만들어줘” → AI가 배경 로딩 |
+
+---
+
+## ✅ 마무리 요약
+
+* **Three.js**는 WebGL을 쉽게 다룰 수 있는 라이브러리이며,
+* **AI**와 결합하면 *지능형 상호작용, 자동화된 그래픽스 생성*이 가능
+* 주요 기술 스택: `TensorFlow.js`, `MediaPipe`, `GPT`, `Web Speech API`, `Point-E`
+* 실습 적용성이 높고, 메타버스, 교육, 게임, 인터랙티브 전시 등에 활용 가능
 * **실습2:** NeRF 또는 DreamFusion 결과물 감상 → 3D 모델링 비교
 * **토론주제:** “AI는 디자이너를 대체할 수 있을까?”
 * **팀프로젝트:** AI 도구를 활용한 간단한 게임 그래픽 또는 캐릭터 생성
