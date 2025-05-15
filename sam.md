@@ -1,6 +1,7 @@
 # Segment Anything Model (SAM)
 
 ---
+![image](https://github.com/user-attachments/assets/7417d045-3a74-4ab7-a419-568846bb60a2)
 
 ### 🧠 Segment Anything Model (SAM) 개요
 
