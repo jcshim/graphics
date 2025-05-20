@@ -1,4 +1,4 @@
-# ✅ OpenGL이란?
+## ✅ OpenGL이란?
 
 **OpenGL**은 **2D 및 3D 그래픽을 그리기 위한 표준 API(Application Programming Interface)**입니다.
 1980년대 후반 실리콘 그래픽스(SGI)가 개발했으며, 지금도 다양한 플랫폼(Windows, macOS, Linux 등)에서 널리 사용되고 있습니다.
