@@ -1,11 +1,11 @@
----
 
 # 🎨 SAM 모델, 그래픽스 관점에서 쉽게 이해하기
 
 ### ✅ SAM이란?
 
-> \*\*SAM(Segment Anything Model)\*\*은 이미지나 영상 속 **객체를 자동으로 잘라내는 AI 모델**입니다.
-> 그래픽 툴에서 사람이 일일이 선택하던 작업을 SAM이 대신 해줍니다.
+**SAM(Segment Anything Model)** 은 이미지나 영상 속 **객체를 자동으로 잘라내는 AI 모델**입니다.
+그래픽 툴에서 사람이 일일이 선택하던 작업을 SAM이 대신 해줍니다.
+
 ---
 ![image](https://github.com/user-attachments/assets/216fec94-d62a-4cef-aedb-b2f45185de05)
 
