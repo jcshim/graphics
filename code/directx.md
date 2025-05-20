@@ -50,6 +50,131 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR, int) {
 ```
 # wireframe
 ```
+#include "pch.h"
+#include <windows.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
+using namespace DirectX;
+
+HWND hwnd;
+ID3D11Device* dev;
+ID3D11DeviceContext* ctx;
+IDXGISwapChain* sc;
+ID3D11RenderTargetView* rtv;
+ID3D11VertexShader* vs;
+ID3D11PixelShader* ps;
+ID3D11InputLayout* layout;
+ID3D11Buffer* vb, * ib, * cb;
+ID3D11RasterizerState* wireRS;
+
+struct Vtx { XMFLOAT3 pos, col; };
+struct CB { XMMATRIX mvp; };
+
+LRESULT CALLBACK WndProc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    if (m == WM_DESTROY) PostQuitMessage(0);
+    return DefWindowProc(h, m, w, l);
+}
+
+void InitD3D() {
+    DXGI_SWAP_CHAIN_DESC d = {};
+    d.BufferDesc.Width = 800; d.BufferDesc.Height = 600;
+    d.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    d.SampleDesc.Count = 1; d.BufferCount = 1;
+    d.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    d.OutputWindow = hwnd; d.Windowed = TRUE;
+    D3D11CreateDeviceAndSwapChain(0, D3D_DRIVER_TYPE_HARDWARE, 0, 0, 0, 0,
+        D3D11_SDK_VERSION, &d, &sc, &dev, 0, &ctx);
+
+    ID3D11Texture2D* buf;
+    sc->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&buf);
+    dev->CreateRenderTargetView(buf, 0, &rtv); buf->Release();
+
+    const char* vsCode =
+        "cbuffer cb : register(b0) {matrix mvp;} "
+        "struct In {float3 p:POSITION; float3 c:COLOR;};"
+        "struct Out {float4 p:SV_POSITION; float3 c:COLOR;};"
+        "Out main(In i) {Out o; o.p = mul(float4(i.p,1),mvp); o.c=i.c; return o;}";
+
+    const char* psCode =
+        "struct In {float4 p:SV_POSITION; float3 c:COLOR;};"
+        "float4 main(In i) : SV_Target { return float4(i.c,1); }";
+
+    ID3DBlob* vsb, * psb;
+    D3DCompile(vsCode, strlen(vsCode), 0, 0, 0, "main", "vs_5_0", 0, 0, &vsb, 0);
+    D3DCompile(psCode, strlen(psCode), 0, 0, 0, "main", "ps_5_0", 0, 0, &psb, 0);
+    dev->CreateVertexShader(vsb->GetBufferPointer(), vsb->GetBufferSize(), 0, &vs);
+    dev->CreatePixelShader(psb->GetBufferPointer(), psb->GetBufferSize(), 0, &ps);
+
+    D3D11_INPUT_ELEMENT_DESC ied[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0,12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    dev->CreateInputLayout(ied, 2, vsb->GetBufferPointer(), vsb->GetBufferSize(), &layout);
+    vsb->Release(); psb->Release();
+
+    Vtx v[] = {
+        {{-1,-1,-1},{1,0,0}}, {{-1,+1,-1},{0,1,0}}, {{+1,+1,-1},{0,0,1}}, {{+1,-1,-1},{1,1,0}},
+        {{-1,-1,+1},{1,0,1}}, {{-1,+1,+1},{0,1,1}}, {{+1,+1,+1},{1,1,1}}, {{+1,-1,+1},{0,0,0}},
+    };
+    DWORD idx[] = {
+        0,1,1,2,2,3,3,0, 4,5,5,6,6,7,7,4, 0,4,1,5,2,6,3,7,
+    };
+
+    D3D11_BUFFER_DESC bd = { sizeof(v), D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER };
+    D3D11_SUBRESOURCE_DATA s = { v }; dev->CreateBuffer(&bd, &s, &vb);
+    bd.ByteWidth = sizeof(idx); bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    s.pSysMem = idx; dev->CreateBuffer(&bd, &s, &ib);
+    bd.ByteWidth = sizeof(CB); bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    dev->CreateBuffer(&bd, 0, &cb);
+
+    D3D11_RASTERIZER_DESC rs = {};
+    rs.FillMode = D3D11_FILL_WIREFRAME; rs.CullMode = D3D11_CULL_NONE;
+    dev->CreateRasterizerState(&rs, &wireRS);
+
+    D3D11_VIEWPORT vp = { 0, 0, 800, 600, 0, 1 };
+    ctx->RSSetViewports(1, &vp);
+}
+
+void Render(float angle) {
+    float bg[4] = { 0.05f,0.05f,0.1f,1 }; ctx->ClearRenderTargetView(rtv, bg);
+    ctx->OMSetRenderTargets(1, &rtv, 0);
+
+    XMMATRIX w = XMMatrixRotationY(angle);
+    XMMATRIX v = XMMatrixLookAtLH({ 0,0,-5 }, { 0,0,0 }, { 0,1,0 });
+    XMMATRIX p = XMMatrixPerspectiveFovLH(XM_PIDIV4, 800.0f / 600.0f, 0.1f, 100);
+    XMMATRIX mvp = XMMatrixTranspose(w * v * p);
+    ctx->UpdateSubresource(cb, 0, 0, &mvp, 0, 0);
+
+    UINT stride = sizeof(Vtx), offset = 0;
+    ctx->IASetInputLayout(layout);
+    ctx->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+    ctx->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    ctx->RSSetState(wireRS);
+    ctx->VSSetShader(vs, 0, 0); ctx->VSSetConstantBuffers(0, 1, &cb);
+    ctx->PSSetShader(ps, 0, 0);
+    ctx->DrawIndexed(24, 0, 0);
+    sc->Present(1, 0);
+}
+
+int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR, int) {
+    WNDCLASS wc = { CS_OWNDC, WndProc, 0,0,h, 0,0,0,0,L"D3D" };
+    RegisterClass(&wc);
+    hwnd = CreateWindow(L"D3D", L"WireCube", WS_OVERLAPPEDWINDOW, 100, 100, 800, 600, 0, 0, h, 0);
+    ShowWindow(hwnd, SW_SHOW); InitD3D();
+
+    MSG msg = {}; float a = 0;
+    while (msg.message != WM_QUIT) {
+        if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) DispatchMessage(&msg);
+        else { a += 0.01f; Render(a); }
+    }
+    return 0;
+}
+
 ```
 # 무지게 삼각형
 ```
