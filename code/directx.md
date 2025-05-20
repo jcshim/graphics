@@ -88,6 +88,168 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR, int) {
     return 0;
 }
 ```
+# 초록색 사각형
+```
+#include "pch.h"
+#include <windows.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
+// 전역 변수
+IDXGISwapChain* g_SwapChain = nullptr;
+ID3D11Device* g_Device = nullptr;
+ID3D11DeviceContext* g_Context = nullptr;
+ID3D11RenderTargetView* g_RenderTargetView = nullptr;
+ID3D11VertexShader* g_VS = nullptr;
+ID3D11PixelShader* g_PS = nullptr;
+ID3D11InputLayout* g_Layout = nullptr;
+ID3D11Buffer* g_VertexBuffer = nullptr;
+
+struct Vertex {
+    float x, y, z;
+    float r, g, b;
+};
+
+// 정점 데이터 (중앙 초록색 직사각형)
+Vertex vertices[] = {
+    {-0.5f,  0.5f, 0.0f, 0, 1, 0},
+    { 0.5f,  0.5f, 0.0f, 0, 1, 0},
+    {-0.5f, -0.5f, 0.0f, 0, 1, 0},
+    { 0.5f, -0.5f, 0.0f, 0, 1, 0},
+};
+
+// 셰이더 코드
+const char* shaderSrc =
+"struct VS_IN { float3 pos : POSITION; float3 col : COLOR; }; \
+ struct PS_IN { float4 pos : SV_POSITION; float3 col : COLOR; }; \
+ PS_IN VS(VS_IN input) { PS_IN output; output.pos = float4(input.pos, 1); output.col = input.col; return output; } \
+ float4 PS(PS_IN input) : SV_Target { return float4(input.col, 1); }";
+
+// 윈도우 프로시저
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    if (msg == WM_DESTROY) PostQuitMessage(0);
+    return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+// Direct3D 초기화
+void InitD3D(HWND hWnd) {
+    DXGI_SWAP_CHAIN_DESC scd = {};
+    scd.BufferCount = 1;
+    scd.BufferDesc.Width = 800;
+    scd.BufferDesc.Height = 600;
+    scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    scd.OutputWindow = hWnd;
+    scd.SampleDesc.Count = 1;
+    scd.Windowed = TRUE;
+
+    D3D11CreateDeviceAndSwapChain(
+        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0,
+        nullptr, 0, D3D11_SDK_VERSION,
+        &scd, &g_SwapChain, &g_Device, nullptr, &g_Context);
+
+    ID3D11Texture2D* backBuffer = nullptr;
+    g_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+    g_Device->CreateRenderTargetView(backBuffer, nullptr, &g_RenderTargetView);
+    backBuffer->Release();
+
+    g_Context->OMSetRenderTargets(1, &g_RenderTargetView, nullptr);
+
+    // 셰이더 컴파일
+    ID3DBlob* vsBlob, * psBlob;
+    D3DCompile(shaderSrc, strlen(shaderSrc), nullptr, nullptr, nullptr, "VS", "vs_4_0", 0, 0, &vsBlob, nullptr);
+    D3DCompile(shaderSrc, strlen(shaderSrc), nullptr, nullptr, nullptr, "PS", "ps_4_0", 0, 0, &psBlob, nullptr);
+    g_Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &g_VS);
+    g_Device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &g_PS);
+
+    // 레이아웃 생성
+    D3D11_INPUT_ELEMENT_DESC layout[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+    g_Device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &g_Layout);
+    vsBlob->Release(); psBlob->Release();
+
+    // 정점 버퍼 생성
+    D3D11_BUFFER_DESC bd = {};
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(vertices);
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = vertices;
+    g_Device->CreateBuffer(&bd, &initData, &g_VertexBuffer);
+
+    // 🔽 뷰포트 설정을 꼭 추가하세요!
+    D3D11_VIEWPORT viewport = {};
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = 800;
+    viewport.Height = 600;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    g_Context->RSSetViewports(1, &viewport);
+}
+
+// 렌더링
+void Render() {
+    float clearColor[4] = { 0, 0, 0, 1 };
+    g_Context->ClearRenderTargetView(g_RenderTargetView, clearColor);
+
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    g_Context->IASetInputLayout(g_Layout);
+    g_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    g_Context->IASetVertexBuffers(0, 1, &g_VertexBuffer, &stride, &offset);
+    g_Context->VSSetShader(g_VS, nullptr, 0);
+    g_Context->PSSetShader(g_PS, nullptr, 0);
+    g_Context->Draw(4, 0);
+
+    g_SwapChain->Present(1, 0);
+}
+
+// 윈도우 생성 및 메시지 루프
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = L"SimpleD3DWindowClass";
+    RegisterClass(&wc);
+
+    HWND hWnd = CreateWindow(wc.lpszClassName, L"Direct3D 초록 사각형",
+        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+        800, 600, nullptr, nullptr, hInstance, nullptr);
+    ShowWindow(hWnd, nCmdShow);
+
+    InitD3D(hWnd);
+
+    MSG msg = {};
+    while (msg.message != WM_QUIT) {
+        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        else {
+            Render();
+        }
+    }
+
+    // 해제
+    if (g_VertexBuffer) g_VertexBuffer->Release();
+    if (g_Layout) g_Layout->Release();
+    if (g_PS) g_PS->Release();
+    if (g_VS) g_VS->Release();
+    if (g_RenderTargetView) g_RenderTargetView->Release();
+    if (g_SwapChain) g_SwapChain->Release();
+    if (g_Context) g_Context->Release();
+    if (g_Device) g_Device->Release();
+
+    return 0;
+}
+
+```
 # wireframe
 ```
 #include "pch.h"
