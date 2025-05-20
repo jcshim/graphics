@@ -4,6 +4,7 @@
 * **Windows 플랫폼 전용**이며, 하드웨어 가속을 통해 고성능 그래픽을 구현할 수 있게 해줍니다.
 * \*\*GPU(Graphics Processing Unit)\*\*를 제어하여 **3D 모델 렌더링**, **텍스처 처리**, **셰이더 프로그래밍** 등을 수행합니다.
 
+[1] https://www.yamyamcoding.com/1732571e-e164-4516-bcba-55aa2e9bf1b3
 ---
 
 ### 🔹 주요 특징
