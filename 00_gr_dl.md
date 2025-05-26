@@ -16,25 +16,85 @@
 * 데이터 기반의 그래픽 변화 이해
 
 #### ✅ 코드 예시 (PoseNet):
+```
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ml5.js faceMesh Triangle Mesh Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+  </head>
+  <body>
+    <script src="sketch.js"></script>
+  </body>
+</html>
+```
 
 ```javascript
-let poseNet, video, pose;
+/*
+ * 👋 Hello! This is an ml5.js example made and shared with ❤️.
+ * Learn more about the ml5.js project: https://ml5js.org/
+ * ml5.js license and Code of Conduct: https://github.com/ml5js/ml5-next-gen/blob/main/LICENSE.md
+ *
+ * This example demonstrates drawing a triangular mesh using ml5.faceMesh.
+ */
+
+let faceMesh;
+let video;
+let faces = [];
+let options = { maxFaces: 1, refineLandmarks: false, flipHorizontal: false };
+let triangles;
+
+function preload() {
+  // Load the faceMesh model
+  faceMesh = ml5.faceMesh(options);
+}
 
 function setup() {
   createCanvas(640, 480);
+  // Create the webcam video and hide it
   video = createCapture(VIDEO);
+  video.size(640, 480);
   video.hide();
-  poseNet = ml5.poseNet(video, () => console.log('Model ready'));
-  poseNet.on('pose', (results) => { if (results.length > 0) pose = results[0].pose; });
+  // Load the triangle indices for drawing the mesh
+  triangles = faceMesh.getTriangles();
+  // Start detecting faces from the webcam video
+  faceMesh.detectStart(video, gotFaces);
 }
 
 function draw() {
-  image(video, 0, 0);
-  if (pose) {
-    fill(255, 0, 0);
-    ellipse(pose.nose.x, pose.nose.y, 20);
+  // Draw the webcam video
+  image(video, 0, 0, width, height);
+
+  // Draw all the triangles
+  for (let i = 0; i < faces.length; i++) {
+    let face = faces[i];
+    for (let j = 0; j < triangles.length; j++) {
+      let indices = triangles[j];
+      let pointAIndex = indices[0];
+      let pointBIndex = indices[1];
+      let pointCIndex = indices[2];
+      let pointA = face.keypoints[pointAIndex];
+      let pointB = face.keypoints[pointBIndex];
+      let pointC = face.keypoints[pointCIndex];
+
+      noFill();
+      stroke(0, 0, 255);
+      strokeWeight(1);
+      triangle(pointA.x, pointA.y, pointB.x, pointB.y, pointC.x, pointC.y);
+    }
   }
 }
+
+// Callback function for when faceMesh outputs data
+function gotFaces(results) {
+  // Save the output to the faces variable
+  faces = results;
+}
+
 ```
 
 ---
