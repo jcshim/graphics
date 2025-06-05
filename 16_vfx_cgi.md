@@ -29,3 +29,6 @@ CGI(Computer-Generated Imagery)와 VFX(Visual Effects)는 영화, 게임, 광고
 ### 요약
 
 CGI는 컴퓨터로 만들어진 이미지나 애니메이션 자체를 의미하고, VFX는 이러한 CGI를 포함해 실사 영상과 다양한 디지털 효과를 결합하는 전체적인 시각 효과 제작 과정을 의미한다. 즉, CGI는 VFX의 도구이자 구성 요소이고, VFX는 보다 넓은 개념이다.
+
+## 동영상
+https://youtu.be/Pok6EN3cfA4?si=-9g9slfhdZgACX6y 
